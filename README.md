@@ -56,17 +56,17 @@ For Windows (tested with Windows 11):
 # Usage
 To run TRIA and TRIR, you need to execute the [TRI.py](TRI.py) script, passing as argument the path to a JSON configuration file. The available options for this JSON configuration file are explained in the [Configuration subsection](#configuration). Details on the outputs of the execution are provided in the [Results subsection](#results). In the [Examples subsection](#examples) we illustrate how to run experiments.
 
-For using the configuration file [examples/config.json](examples/config.json), run the following command:
+For using the configuration file [examples/config.json](examples/config.json), first activate the Conda environment created in the [Install section](#install) and then run the following command:
 ```console
 python TRI.py examples/config.json
 ```
 
 ## Configuration
-In the following, we specify the configurations available for our implementation, done using a JSON file (example in [examples/config.json](examples/config.json)). For each paramter, we specify the name, type, if it is mandatory or has a default value (i.e., optional) and describe its usage. They are organized accoding to the [code structure](#code-structure).
+In the following, we specify the configurations available for our implementation, defined using a JSON file (example in [examples/config.json](examples/config.json)). They are organized accoding to the [code structure](#code-structure). For each configuration, we specify the name, type, if it is mandatory or has a default value (i.e., optional) and description.
 
 ### Data
 * **Load pretreatment**:
-  * **LOAD_SAVED_PRETREATMENT | Boolean | Default=true**: If the `Pretreated_Data.json` file exists in the OUTPUT_FOLDER, load that data instead of running the pretreatment. Disable it if you modified the DATA_FILEPATH. It requires a previous execution with `SAVE_PRETREATMENT=true`.
+  * **LOAD_SAVED_PRETREATMENT | Boolean | Default=true**: If the `Pretreated_Data.json` file exists in the OUTPUT_FOLDERPATH, load that data instead of running the pretreatment. Disable it if you modified the DATA_FILEPATH. It requires a previous execution with `SAVE_PRETREATMENT=true`.
 * **Data reading**:
   * **OUTPUT_FOLDERPATH | String | MANDATORY**: Determines the folder were results (see [Results subsection](#results) for details) will be stored. The folder will be created if it does not exist.
   * **DATA_FILEPATH | String | MANDATORY**: Path to the data file to use. That file is expected to define a Pandas dataframe stored in JSON or CSV format containing three types of columns: 
@@ -134,15 +134,17 @@ After execution of [TRI.py](TRI.py), in the `OUTPUT_FOLDERPATH` defined in JSON 
   At the end of the program, TRIR is predicted for all the anonymization methods using the TRI model that obtained the better average TRIR during finetuning (i.e., best epoch). This final evaluation is also stored in the `Results.csv` file as an "additional epoch".
 
 ## Examples
-In the [examples](examples) folder, a basic JSON configuration file [config.json](examples/config.json) is provided. That configuration uses the [WikiActors_50_eval.json](examples/WikiActors_50_eval.json) dataset, that contains a set of 50 popular actors and actresses born in the 20th century. Background knowledge are the bodies of the actors' Wikipedia articles. Anonymized documents are the abstracts of the actors' Wikipedia articles protected using approaches based on NER, Word2Vec and manual efforts (see [our paper](https://link.springer.com/chapter/10.1007/978-3-031-13945-1_12) for details). Using this [config.json](examples/config.json), the TRIRs expected to be found in the corresponding `Results.csv` of the `OUTPUT_FOLDERPATH` are (may differ by up to 10% depending on execution):
-* original_abstract: 100.0%
-* ner3_abstract: 70.0%
-* ner4_abstract: 60.0%
-* ner7_abstract: 88.0%
-* presidio_abstract: 74.0%
-* spacy_abstract: 70.0%
-* word2vec_t=0.5_abstract: 48.0%
-* word2vec_t=0.25_abstract: 26.0%
-* manual_abstract: 10.0%
+In the [examples](examples) folder, a basic JSON configuration file [config.json](examples/config.json) is provided. That configuration uses the [WikiActors_50_eval.json](examples/WikiActors_50_eval.json) dataset, that contains a set of 50 popular actors and actresses born in the 20th century. Background knowledge are the bodies of the actors' Wikipedia articles. Anonymized documents are the abstracts of the actors' Wikipedia articles protected using approaches based on NER, Word2Vec and manual efforts (see [our paper](https://link.springer.com/chapter/10.1007/978-3-031-13945-1_12) for details). Using this [config.json](examples/config.json) (command example in the [Usage section](#usage)), the TRIRs expected to be found in the corresponding `Results.csv` of the `OUTPUT_FOLDERPATH` are (may differ by up to 10% depending on execution):
+| Method          | TRIR |
+|-----------------|------|
+| Original        | 100% |
+| NER3            | 70%  |
+| NER4            | 60%  |
+| NER7            | 88%  |
+| Presidio        | 74%  |
+| spaCy           | 70%  |
+| Word2Vec_t=0.5  | 48%  |
+| Word2Vec_t=0.25 | 26%  |
+| Manual          | 10%  |
 
-Feel free to modify the [config.json](examples/config.json) file for testing with other datasets or configurations. If modifying the `DATA_FILEPATH` setting (i.e., changing the dataset), we recommend to also change the `OUTPUT_FOLDERPATH` directory for avoiding overwritting.
+Feel free to modify the [config.json](examples/config.json) file for testing other datasets or configurations. If the `DATA_FILEPATH` is changed (i.e. if you change the dataset), we recommend to also change the `OUTPUT_FOLDERPATH` directory to avoid overwriting.
