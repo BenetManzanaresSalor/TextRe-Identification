@@ -1,7 +1,7 @@
 # Text Re-Identification
 This repository contains the code and data for the **text re-identification attack** (TRIR) for anonymized documents and subsequent **re-identification risk metric** (TRIR) presented in *B. Manzanares-Salor, D. Sánchez, P. Lison, Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack, Submitted, (2024)*. A first version of this project was presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Automatic Evaluation of Disclosure Risks of Text Anonymization Methods, Privacy in Statistical Databases, (2022)](https://link.springer.com/chapter/10.1007/978-3-031-13945-1_12).
 
-Data used for the experiments was extracted from the [automatic_text_anonymization](https://github.com/fadiabdulf/automatic_text_anonymization) repository, corresponding to the publication [F. Hassan, D. Sanchez, J. Domingo-Ferrer, Utility-Preserving Privacy Protection of Textual Documents via Word Embeddings, IEEE Transactions on Knowledge and Data Engineering, (2021)](https://ieeexplore.ieee.org/abstract/document/9419784).
+Experimental data was extracted from the [automatic_text_anonymization](https://github.com/fadiabdulf/automatic_text_anonymization) repository, corresponding to the publication [F. Hassan, D. Sanchez, J. Domingo-Ferrer, Utility-Preserving Privacy Protection of Textual Documents via Word Embeddings, IEEE Transactions on Knowledge and Data Engineering, (2021)](https://ieeexplore.ieee.org/abstract/document/9419784). The exact data files utilized in the experiments are located in the [examples](examples) folder.
 
 ## Table of Contents
 * [Project structure](#project-structure)
