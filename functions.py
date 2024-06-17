@@ -87,7 +87,7 @@ def split_data(INDIVIDUAL_NAME_COLUMN, BACKGROUND_KNOWLEDGE_COLUMN, data_df):
     train_df = data_df[train_cols].dropna()
     train_df.reset_index(drop=True, inplace=True)
 
-    eval_columns = [col for col in data_df.columns if col not in train_cols]    
+    eval_columns = [col for col in data_df.columns if col not in train_cols]
     eval_dfs = {col:data_df[[INDIVIDUAL_NAME_COLUMN, col]].dropna().reset_index(drop=True) for col in eval_columns}
     
     return train_df, eval_dfs
@@ -114,7 +114,7 @@ def get_individuals_labels(all_individuals):
     return label_to_name, name_to_label
 
 def show_data_stats(train_df, eval_dfs, no_eval_individuals, no_train_individuals, eval_individuals):
-    logging.info(f"Number of public knowledge documents for training: {len(train_df)}")
+    logging.info(f"Number of background knowledge documents for training: {len(train_df)}")
 
     eval_n_dict = {name:len(df) for name, df in eval_dfs.items()}
     logging.info(f"Number of protected documents for evaluation: {eval_n_dict}")
@@ -124,7 +124,7 @@ def show_data_stats(train_df, eval_dfs, no_eval_individuals, no_train_individual
     
     if len(no_train_individuals) > 0:
         max_risk = (1 - len(no_train_individuals) / len(eval_individuals)) * 100
-        logging.info(f"No public knowledge documents found for {len(no_train_individuals)} individuals. Re-identification risk limited to {max_risk:.3f}%.")
+        logging.info(f"No background knowledge documents found for {len(no_train_individuals)} individuals. Re-identification risk limited to {max_risk:.3f}%.")
 
 #endregion
 
@@ -379,91 +379,6 @@ class TextDataset(Dataset):
         # Tokenize texts
         self.inputs, self.labels = self.tokenize_data(texts, labels)        
 
-    def tokenize_text_old(self, inputs, labels):
-        # TODO: Probably remove
-        inputs = self.tokenizer(inputs,
-                                    add_special_tokens=not self.use_sliding_window,
-                                    padding="longest",  # Warning: If an input_text is longer than tokenizer.model_max_length, an error will raise on prediction
-                                    truncation=False,
-                                    max_length=self.tokenizer.model_max_length,
-                                    return_tensors="pt")
-        
-        if self.use_sliding_window:
-            old_input_ids = inputs["input_ids"]
-            old_attention_masks = inputs["attention_mask"]
-            old_seq_length = old_input_ids.size()[1]
-
-            # If sliding window is required
-            if old_seq_length > self.sliding_window_length:
-                new_input_ids = torch.zeros((0, self.sliding_window_length), dtype=torch.int)
-                new_attention_masks = torch.zeros((0, self.sliding_window_length), dtype=torch.int)
-                new_labels = []
-
-                # Iterate inputs
-                num_inputs = old_input_ids.size()[0]
-                for idx in tqdm(range(num_inputs), desc="Processing sliding window"):
-                    input_ids = old_input_ids[idx, :]
-                    attention_mask = old_attention_masks[idx, :]
-                    sequences = []
-                    attention_masks = []
-
-                    # Sequence division using sliding window
-                    ini = 0
-                    end = ini + self.sliding_window_length - 2 # Minus 2 because of the CLS and SEP tokens
-                    sequence_finished = False
-                    padding_required = False                    
-                    while not sequence_finished:
-                        # Get the corresponding sequence and mask
-                        if end > old_seq_length:
-                            end = old_seq_length
-                            padding_required = True
-                        sequence = input_ids[ini:end]
-                        mask = attention_mask[ini:end]
-
-                        # Check if sequence is finished
-                        sequence_finished = end == old_seq_length or padding_required or mask[-1] == 0
-
-                        # Add CLS and SEP tokens
-                        num_attention_tokens = torch.count_nonzero(mask)
-                        if num_attention_tokens == mask.size()[0]:  # If sequence is full
-                            sequence = torch.cat(( torch.tensor([self.tokenizer.cls_token_id]), sequence, torch.tensor([self.tokenizer.sep_token_id]) ))
-                            mask = torch.cat(( torch.tensor([1]), mask, torch.tensor([1]) ))
-                        else:
-                            sequence[num_attention_tokens] = torch.tensor(self.tokenizer.sep_token_id)
-                            sequence = torch.cat(( torch.tensor([self.tokenizer.cls_token_id]), sequence, torch.tensor([self.tokenizer.pad_token_id]) ))
-                            mask[num_attention_tokens] = 1
-                            mask = torch.cat(( torch.tensor([1]), mask, torch.tensor([0]) ))
-
-                        # Padding if is required
-                        if padding_required:
-                            padding_length = self.sliding_window_length - sequence.size()[0]
-                            padding = torch.zeros((padding_length), dtype=sequence.dtype)
-                            sequence = torch.cat((sequence, padding))
-                            mask = torch.cat((mask, padding))                        
-
-                        # Increment indexes
-                        ini += self.sliding_window_length - self.sliding_window_overlap - 2 # Minus 2 because of the CLS and SEP tokens
-                        end = ini + self.sliding_window_length - 2 # Minus 2 because of the CLS and SEP tokens                        
-
-                        # Append to lists
-                        sequences.append(sequence)
-                        attention_masks.append(mask)
-                    
-                    # Stack lists and concatenate with new data
-                    sequences = torch.stack(sequences)
-                    attention_masks = torch.stack(attention_masks)
-                    new_input_ids = torch.cat((new_input_ids, sequences))
-                    new_attention_masks = torch.cat((new_attention_masks, attention_masks))
-                    new_labels += [labels[idx]] * sequences.size()[0]
-            
-                inputs = {"input_ids": new_input_ids, "attention_mask": new_attention_masks}
-                labels = new_labels
-        
-        # Transform labels to tensor
-        labels = torch.tensor(labels)
-
-        return inputs, labels
-
     def tokenize_data(self, texts, labels):
         # Sliding window
         if self.use_sliding_window:
@@ -494,98 +409,8 @@ class TextDataset(Dataset):
                 gc.collect()
 
                 # Sliding window
-                if self.use_sliding_window:
-                    # TODO: Fit this into a method
-                    # Predict number of windows
-                    n_windows = 0
-                    old_seq_length = block_inputs["input_ids"].size()[1]
-                    window_increment = self.sliding_window_length - self.sliding_window_overlap - 2 # Minus 2 because of the CLS and SEP tokens
-                    for old_attention_mask in block_inputs["attention_mask"]:
-                        is_sequence_finished = False
-                        is_padding_required = False
-                        ini = 0
-                        end = ini + self.sliding_window_length - 2
-                        while not is_sequence_finished:
-                            # Get the corresponding window's ids and mask
-                            if end > old_seq_length:
-                                end = old_seq_length
-                                is_padding_required = True
-                            window_mask = old_attention_mask[ini:end]
-                            
-                            # Check end of sequence
-                            is_sequence_finished = end == old_seq_length or is_padding_required or window_mask[-1] == 0
-
-                            # Increment indexes
-                            ini += window_increment
-                            end = ini + self.sliding_window_length - 2 # Minus 2 because of the CLS and SEP tokens
-
-                            n_windows += 1
-                    
-                    # Allocate memory for ids and masks
-                    all_sequences_windows_ids = torch.empty((n_windows, input_length), dtype=torch.int)
-                    all_sequences_windows_masks = torch.empty((n_windows, input_length), dtype=torch.int)                                   
-
-                    # Sequence splitting using sliding window
-                    window_idx = 0
-                    old_seq_length = block_inputs["input_ids"].size()[1]
-                    pbar.set_description("Processing sliding window")
-                    for seq_idx, (old_input_ids, old_attention_mask) in enumerate(zip(block_inputs["input_ids"], block_inputs["attention_mask"])):              
-                        ini = 0
-                        end = ini + self.sliding_window_length - 2 # Minus 2 because of the CLS and SEP tokens
-                        is_sequence_finished = False
-                        is_padding_required = False
-                        n_windows_in_seq = 0
-                        while not is_sequence_finished:
-                            # Get the corresponding window's ids and mask
-                            if end > old_seq_length:
-                                end = old_seq_length
-                                is_padding_required = True
-                            window_ids = old_input_ids[ini:end]
-                            window_mask = old_attention_mask[ini:end]
-
-                            # Check end of sequence
-                            is_sequence_finished = end == old_seq_length or is_padding_required or window_mask[-1] == 0
-
-                            # Add CLS and SEP tokens
-                            num_attention_tokens = torch.count_nonzero(window_mask)
-                            if num_attention_tokens == window_mask.size()[0]:  # If window is full
-                                window_ids = torch.cat(( torch.tensor([self.tokenizer.cls_token_id]), window_ids, torch.tensor([self.tokenizer.sep_token_id]) ))
-                                window_mask = torch.cat(( torch.tensor([1]), window_mask, torch.tensor([1]) )) # Attention to CLS and SEP
-                            else: # If window has empty space (to be padded later)
-                                window_ids[num_attention_tokens] = torch.tensor(self.tokenizer.sep_token_id) # SEP at last position
-                                window_mask[num_attention_tokens] = 1 # Attention to SEP
-                                window_ids = torch.cat(( torch.tensor([self.tokenizer.cls_token_id]), window_ids, torch.tensor([self.tokenizer.pad_token_id]) )) # PAD at the end of sentence
-                                window_mask = torch.cat(( torch.tensor([1]), window_mask, torch.tensor([0]) )) # No attention to PAD
-
-                            # Padding if it is required
-                            if is_padding_required:
-                                padding_length = self.sliding_window_length - window_ids.size()[0]
-                                padding = torch.zeros((padding_length), dtype=window_ids.dtype)
-                                window_ids = torch.cat((window_ids, padding))
-                                window_mask = torch.cat((window_mask, padding))
-
-                            # Store ids and mask
-                            all_sequences_windows_ids[window_idx] = window_ids
-                            all_sequences_windows_masks[window_idx] = window_mask
-
-                            # Increment indexes
-                            ini += self.sliding_window_length - self.sliding_window_overlap - 2 # Minus 2 because of the CLS and SEP tokens
-                            end = ini + self.sliding_window_length - 2 # Minus 2 because of the CLS and SEP tokens
-                            n_windows_in_seq += 1
-                            window_idx += 1
-                        
-                        # Stack lists and concatenate with new data
-                        all_labels += [labels[seq_idx]] * n_windows_in_seq # sequence_windows_ids.size()[0]
-                        pbar.update(1)
-                    
-                    # Concat the block data
-                    # TODO: use tensor.index_copy_ #idxs =  torch.arange(i * part_size, (i+1) * part_size)  out_x.index_copy_(0, idxs, in_x) (https://github.com/pytorch/pytorch/issues/44025)
-                    all_input_ids = torch.cat((all_input_ids, all_sequences_windows_ids))
-                    all_attention_masks = torch.cat((all_attention_masks, all_sequences_windows_masks))
-                    
-                    # Force GarbageCollector after sliding window
-                    gc.collect()
-
+                if self.use_sliding_window:                    
+                    all_input_ids, all_attention_masks, all_labels = self.do_sliding_window(labels[ini:end], input_length, all_input_ids, all_attention_masks, all_labels, pbar, block_inputs)
                 # Sentence splitting
                 else:
                     # Concatenate to all data            
@@ -596,11 +421,103 @@ class TextDataset(Dataset):
 
         # Get inputs
         inputs = {"input_ids": all_input_ids, "attention_mask": all_attention_masks}
-        
+
         # Transform labels to tensor
         labels = torch.tensor(all_labels)
 
         return inputs, labels
+
+    def do_sliding_window(self, block_labels, input_length, all_input_ids, all_attention_masks, all_labels, pbar, block_inputs):
+        # Predict number of windows
+        n_windows = 0
+        old_seq_length = block_inputs["input_ids"].size()[1]
+        window_increment = self.sliding_window_length - self.sliding_window_overlap - 2 # Minus 2 because of the CLS and SEP tokens
+        for old_attention_mask in block_inputs["attention_mask"]:
+            is_sequence_finished = False
+            is_padding_required = False
+            ini = 0
+            end = ini + self.sliding_window_length - 2
+            while not is_sequence_finished:
+                # Get the corresponding window's ids and mask
+                if end > old_seq_length:
+                    end = old_seq_length
+                    is_padding_required = True
+                window_mask = old_attention_mask[ini:end]
+                            
+                # Check end of sequence
+                is_sequence_finished = end == old_seq_length or is_padding_required or window_mask[-1] == 0
+
+                # Increment indexes
+                ini += window_increment
+                end = ini + self.sliding_window_length - 2 # Minus 2 because of the CLS and SEP tokens
+
+                n_windows += 1
+                    
+        # Allocate memory for ids and masks
+        all_sequences_windows_ids = torch.empty((n_windows, input_length), dtype=torch.int)
+        all_sequences_windows_masks = torch.empty((n_windows, input_length), dtype=torch.int)                                   
+
+        # Sliding window for block sequences' splitting
+        window_idx = 0
+        old_seq_length = block_inputs["input_ids"].size()[1]
+        pbar.set_description("Processing sliding window")
+        for block_seq_idx, (old_input_ids, old_attention_mask) in enumerate(zip(block_inputs["input_ids"], block_inputs["attention_mask"])):
+            ini = 0
+            end = ini + self.sliding_window_length - 2 # Minus 2 because of the CLS and SEP tokens
+            is_sequence_finished = False
+            is_padding_required = False
+            n_windows_in_seq = 0
+            while not is_sequence_finished:
+                # Get the corresponding window's ids and mask
+                if end > old_seq_length:
+                    end = old_seq_length
+                    is_padding_required = True
+                window_ids = old_input_ids[ini:end]
+                window_mask = old_attention_mask[ini:end]
+
+                # Check end of sequence
+                is_sequence_finished = end == old_seq_length or is_padding_required or window_mask[-1] == 0
+
+                # Add CLS and SEP tokens
+                num_attention_tokens = torch.count_nonzero(window_mask)
+                if num_attention_tokens == window_mask.size()[0]:  # If window is full
+                    window_ids = torch.cat(( torch.tensor([self.tokenizer.cls_token_id]), window_ids, torch.tensor([self.tokenizer.sep_token_id]) ))
+                    window_mask = torch.cat(( torch.tensor([1]), window_mask, torch.tensor([1]) )) # Attention to CLS and SEP
+                else: # If window has empty space (to be padded later)
+                    window_ids[num_attention_tokens] = torch.tensor(self.tokenizer.sep_token_id) # SEP at last position
+                    window_mask[num_attention_tokens] = 1 # Attention to SEP
+                    window_ids = torch.cat(( torch.tensor([self.tokenizer.cls_token_id]), window_ids, torch.tensor([self.tokenizer.pad_token_id]) )) # PAD at the end of sentence
+                    window_mask = torch.cat(( torch.tensor([1]), window_mask, torch.tensor([0]) )) # No attention to PAD
+
+                # Padding if it is required
+                if is_padding_required:
+                    padding_length = self.sliding_window_length - window_ids.size()[0]
+                    padding = torch.zeros((padding_length), dtype=window_ids.dtype)
+                    window_ids = torch.cat((window_ids, padding))
+                    window_mask = torch.cat((window_mask, padding))
+
+                # Store ids and mask
+                all_sequences_windows_ids[window_idx] = window_ids
+                all_sequences_windows_masks[window_idx] = window_mask
+
+                # Increment indexes
+                ini += self.sliding_window_length - self.sliding_window_overlap - 2 # Minus 2 because of the CLS and SEP tokens
+                end = ini + self.sliding_window_length - 2 # Minus 2 because of the CLS and SEP tokens
+                n_windows_in_seq += 1
+                window_idx += 1
+                        
+            # Stack lists and concatenate with new data
+            all_labels += [block_labels[block_seq_idx]] * n_windows_in_seq
+            pbar.update(1)
+                    
+        # Concat the block data        
+        all_input_ids = torch.cat((all_input_ids, all_sequences_windows_ids))
+        all_attention_masks = torch.cat((all_attention_masks, all_sequences_windows_masks))
+
+        # Force GarbageCollector after sliding window
+        gc.collect()
+
+        return all_input_ids, all_attention_masks, all_labels
     
     def __len__(self):
         return len(self.inputs["input_ids"])
@@ -703,16 +620,19 @@ class MyTrainer(Trainer):
             acc_key = f"{metric_key_prefix}_Accuracy"
 
             # Get results
-            for dataset_name, dataset in self.eval_datasets_dict.items():
+            for dataset_name, dataset in self.eval_datasets_dict.items():       
                 res = Trainer.evaluate(self, eval_dataset=dataset, ignore_keys=ignore_keys, metric_key_prefix=metric_key_prefix)
                 avg_loss += res[loss_key] / len(self.eval_datasets_dict)
                 avg_acc += res[acc_key] / len(self.eval_datasets_dict)
                 custom_results[dataset_name] = res
+            
             # Save results intro list and file
             self.store_results(custom_results)
             self.all_results.append(custom_results)
+
             # Increment evaluation epoch
             self.evaluation_epoch += 1
+
             return {loss_key: avg_loss, acc_key: avg_acc}
         # Otherwise, standard evaluation with eval_dataset
         else:
@@ -774,14 +694,13 @@ def get_trainer(model, model_config, train_dataset, eval_datasets_dict, results_
     # Define TrainingArguments    
     args = TrainingArguments(
         output_dir=model_config.trainer_folder_path,
-        overwrite_output_dir=True,
-        metric_for_best_model="eval_Accuracy",
+        overwrite_output_dir=True,        
         load_best_model_at_end=load_best_model_at_end,
         save_strategy=save_strategy,
         save_total_limit=1,
         num_train_epochs=model_config.epochs,
         per_device_train_batch_size=model_config.batch_size,
-        per_device_eval_batch_size=model_config.batch_size,
+        per_device_eval_batch_size=model_config.batch_size,        
         logging_strategy="epoch",
         logging_steps=500,        
         evaluation_strategy=evaluation_strategy,
@@ -789,9 +708,9 @@ def get_trainer(model, model_config, train_dataset, eval_datasets_dict, results_
         disable_tqdm=False,
         eval_accumulation_steps=5,  # Number of eval steps before move preds from GPU to RAM        
         dataloader_num_workers=0,
+        metric_for_best_model="eval_Accuracy",
         dataloader_persistent_workers=False,
         dataloader_prefetch_factor=None,
-        resume_from_checkpoint=True, # TODO: Test
     )
 
     # Define optimizer
