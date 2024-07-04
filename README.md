@@ -50,7 +50,7 @@ For Linux:
 
 For Windows (tested with Windows 11):
 ```console
-./install_requirements.bat
+install_requirements.bat
 ```
 
 # Usage

@@ -1,7 +1,7 @@
 call conda create -n TRI_env python=3.9 -y && ^
 call conda activate TRI_env && ^
 call conda install pytorch=2.2.1=py3.9_cuda11.8_cudnn8_0 -c pytorch -c nvidia -y && ^
-call conda install cuda=11.6.1=0 -c nvidia -y &&
+call conda install cuda=11.6.1=0 -c nvidia -y && ^
 call conda install transformers=4.39.3 -c huggingface -y && ^
 call conda install accelerate=0.28.0=pyhd8ed1ab_0 -c huggingface -y && ^
 call conda install spacy=3.5.0 -c spacy -y && ^
