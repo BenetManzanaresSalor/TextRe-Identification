@@ -139,7 +139,7 @@ In the following, we specify the configurations available for our implementation
 
 * **Load pretreatment**:
   * **load_saved_pretreatment | Boolean | Default=true**: If the `Pretreated_Data.json` file exists in the `output_folder_path`, load that data instead of running the pretreatment. Disable it if you completely changed the `data_file_path`. It requires a previous execution with `save_pretreatment=true`.
-  * **pretreat_non_saved_anonymizations | Boolean | Default=true**: If the pretreatment is loaded from `Pretreated_Data.json` and `use_document_curation` is true, checks if the file in `data_file_path` contains new anonymizations to evaluate and runs the pretreatment (in particular, the curation) only for them. Useful if you only added new anonymizations to the dataframe stored in `data_file_path`, not requiring to repeat the whole pretreatment.
+  * **add_non_saved_anonymizations | Boolean | Default=true**: When loading pretreatment data from `Pretreated_Data.json`, this setting checks whether the file at `data_file_path` includes new anonymizations that need to be processed. If new anonymizations are found, they are loaded and, if `use_document_curation` is true, only these new anonymizations will undergo curation. This option is particularly useful if you have added new anonymizations to the dataframe at `data_file_path` and want to avoid repeating the entire pretreatment.
 
 * **Data pretreatment**:
   * **Anonymized background knowledge**:
@@ -171,6 +171,7 @@ In the following, we specify the configurations available for our implementation
   * **finetuning_batch_size | Integer | Default=16**: Size of the batches for finetuning.
   * **finetuning_learning_rate | Float | Default=5e-05**: Learning rate for the [AdamW optimizer](https://huggingface.co/docs/bitsandbytes/main/en/reference/optim/adamw) to use during finetuning.
   * **finetuning_sliding_window | String | Default="100-25"**: Sliding window configuration for finetuning. Since input documents are assumed to be longer than the maximum number of tokens processable by the language model (maximum sequence length), the text is split into multiple samples. A sliding window mechasim has been implemented, defined by the size of the window and the overlap with the previous window. For example, use "512-128" for samples/splits of 512 tokens and an overlap of 128 tokens with the previous split/sample. Alternatevely, if "No" is used, one sample/split per sentence will be created, leveraging that sentences are generally shorter than the model maximum sequence length. Reducing the window size and/or increasing the overlap will result in more samples/splits, what increments the training time.
+  * **dev_set_column_name | String | Default=false**: Specifies the column name to be used for model selection. If set to `false` (boolean, not string), the model with the highest average accuracy across all anonymization sets will be selected as the final model. If a column name is provided, the accuracy corresponding to that specific anonymization from the dataframe located at `data_file_path` will be used to choose the best model.
   * **save_finetuning | Boolean | Default=true**: Whether to save the TRI model after the finetuning. The model will be saved as a [Transformers' pipeline](https://huggingface.co/docs/transformers/main_classes/pipelines), creating a folder `TRI_Pipeline` in the `output_folder_path` directory, containing the model file `model.safetensors`.
 
 ## Results
@@ -178,14 +179,14 @@ After execution of TRI (both from CLI or Python code), in the `output_folder_pat
 * **Pretreated_Data.json**: If `save_pretreatment` is true, this file is created for saving the pretreated background knowledge and protected documents, sometimes referred as training and evaluation data, respectively. Leveraged if `load_saved_pretreatment` is true.
 * **Pretrained_Model.pt**: If `save_additional_pretraining` is true, this file is created for saving the additionally pretrained language model. Leveraged if `load_saved_pretraining` is true.
 * **TRI_Pipeline**: If `save_finetuning` is true, this folder is created for saving the . Leveraged if `load_saved_finetuning` is true.
-* **Results.csv**: After each epoch of finetuning, the Text Re-Identification Risk (TRIR) resulting from each anonymization method will be evaluated. If using the dataframe exemplified in the `data_file_path` configuration description, TRIR results will correspond to Method1 and Method2. These results are stored (always appending, not overwriting) in a CSV file named `Results.csv`. This file contains the epoch time, epoch number and the TRIR for each anonymization method. For example:
-  |Time|Epoch                        |Method1|Method2                                |
-  |----|-----------------------------|-----------------|---------------------------------------------|
-  |28/02/2023 08:50:04|1                            |74.000           |36.000                                       |
-  |28/02/2023 08:50:37|2                            |92.000           |44.000                                       |
-  |28/02/2023 08:51:10|3                            |94.000           |48.000                                       |
+* **Results.csv**: After each epoch of finetuning, the Text Re-Identification Risk (TRIR) resulting from each anonymization method will be evaluated. These results are stored (always appending, not overwriting) in a CSV file named `Results.csv`. This file contains the epoch time, epoch number, the TRIR for each anonymization method and the average TRIR. for example, if using the dataframe exemplified in the `data_file_path` configuration description, TRIR results will correspond to Method1 and Method2:
+  | Time                | Epoch | Method1 | Method2 | Average |
+  | ------------------- | ----- | ------- | ------- | ------- |
+  | 01/08/2024 08:50:04 | 1     | 74      | 36      | 55      |
+  | 01/08/2024 08:50:37 | 2     | 92      | 44      | 68      |
+  | 01/08/2024 08:50:10 | 3     | 94      | 48      | 71      |
 
-  At the end of the program, TRIR is predicted for all the anonymization methods using the TRI model that obtained the better average TRIR during finetuning (i.e., best epoch). This final evaluation is also stored in the `Results.csv` file as an "additional epoch".
+  At the end of the program, TRIR is predicted for all the anonymization methods using the best TRI model considering the criteria defined for the setting `dev_set_column_name`. This final evaluation is also stored in the `Results.csv` file as an "additional epoch".
 
 ## Examples
 In the [examples](examples) folder, a basic JSON configuration file [config.json](examples/config.json) and multiple Pandas' dataframes (in JSON format) are provided. That configuration uses the [WikiActors_50_eval.json](examples/WikiActors_50_eval.json) dataframe, that contains a set of 50 popular actors and actresses born in the 20th century. Background knowledge are the bodies of the actors' Wikipedia articles. Anonymized documents are the abstracts of the actors' Wikipedia articles protected using approaches based on NER, Word2Vec and manual efforts (see [our paper](https://link.springer.com/chapter/10.1007/978-3-031-13945-1_12) for details). Using this [config.json](examples/config.json) (command example in the [Usage section](#usage)), the TRIRs expected to be found in the corresponding `Results.csv` of the `output_folder_path` are (may differ by up to 10% depending on execution):

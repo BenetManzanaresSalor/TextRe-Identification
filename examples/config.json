@@ -4,7 +4,7 @@
     "individual_name_column": "name",
     "background_knowledge_column": "public_knowledge",
     "load_saved_pretreatment": true,
-    "pretreat_non_saved_anonymizations": true,
+    "add_non_saved_anonymizations": true,
     "anonymize_background_knowledge": true,
     "only_use_anonymized_background_knowledge": false,
     "use_document_curation": true,
@@ -24,5 +24,6 @@
     "finetuning_batch_size": 16,
     "finetuning_learning_rate": 5e-05,
     "finetuning_sliding_window": "100-25",
+    "dev_set_column_name": false,
     "save_finetuning": true
 }

@@ -6,6 +6,7 @@ import gc
 import re
 from datetime import datetime
 import logging
+from collections import OrderedDict
 
 from argparse import Namespace
 from tqdm import tqdm
@@ -75,16 +76,16 @@ class TRI():
 
     #region ########## Optional configs with default values ##########
 
-    optional_configs_names = ["load_saved_pretreatment", "pretreat_non_saved_anonymizations",
+    optional_configs_names = ["load_saved_pretreatment", "add_non_saved_anonymizations",
         "anonymize_background_knowledge", "only_use_anonymized_background_knowledge", 
         "use_document_curation", "save_pretreatment", "load_saved_finetuning", "base_model_name", 
         "tokenization_block_size", "use_additional_pretraining", "save_additional_pretraining",
         "load_saved_pretraining", "pretraining_epochs", "pretraining_batch_size",
         "pretraining_learning_rate", "pretraining_mlm_probability", "pretraining_sliding_window",
         "save_finetuning", "load_saved_finetuning", "finetuning_epochs", "finetuning_batch_size",
-        "finetuning_learning_rate", "finetuning_sliding_window"]
+        "finetuning_learning_rate", "finetuning_sliding_window", "dev_set_column_name"]
     load_saved_pretreatment = True
-    pretreat_non_saved_anonymizations = True
+    add_non_saved_anonymizations = True
     anonymize_background_knowledge = True
     only_use_anonymized_background_knowledge = True
     use_document_curation = True
@@ -105,6 +106,7 @@ class TRI():
     finetuning_batch_size = 16
     finetuning_learning_rate = 5e-05
     finetuning_sliding_window = "100-25"
+    dev_set_column_name = False
 
     #endregion
 
@@ -228,14 +230,18 @@ class TRI():
         self.pretreated_data_loaded = False
         self.pretreatment_done = False
 
+        # Create output directory if it does not exist
+        if not os.path.isdir(self.output_folder_path):
+            os.mkdir(self.output_folder_path)
+
         # Read pretreated data if it exists        
         if self.load_saved_pretreatment and os.path.isfile(self.pretreated_data_path):
             if verbose: logging.info("######### START: LOADING SAVED PRETREATED DATA #########")
             self.train_df, self.eval_dfs = self.load_pretreatment()            
-            self.pretreated_data_loaded = True            
+            self.pretreated_data_loaded = True
 
             # If curate non-saved anonymizations and document curation are required
-            if self.pretreat_non_saved_anonymizations and self.use_document_curation:
+            if self.add_non_saved_anonymizations:
                 # Pretreated saved anonymizations
                 self.saved_anons = set(self.eval_dfs.keys())
 
@@ -250,20 +256,24 @@ class TRI():
                     if not anon_name in self.saved_anons:
                         self.non_saved_anons.append(anon_name)
 
-                # If there are non-pretreated anonymizations not present in saved anonymizations, pretreat (curate) them
+                # If there are non-pretreated anonymizations not present in saved anonymizations, add them
                 if len(self.non_saved_anons) > 0:
-                    if verbose: logging.info("######### START: PRETREAT NON-SAVED ANONYMIZATIONS #########")
-                    if verbose: logging.info(f"The following non-saved anonymizations will be curated: {self.non_saved_anons}")
+                    if verbose: logging.info("######### START: ADDING NON-SAVED ANONYMIZATIONS #########")
+                    if verbose: logging.info(f"The following non-saved anonymizations will be added: {self.non_saved_anons}")
                     for anon_name in self.non_saved_anons:
-                        self.curate_df(new_eval_dfs[anon_name], self.load_spacy_nlp())
+                        # Curate anonymizations if needed
+                        if self.use_document_curation:
+                            self.curate_df(new_eval_dfs[anon_name], self.load_spacy_nlp())
+                        # Add to eval_dfs
                         self.eval_dfs[anon_name] = new_eval_dfs[anon_name]
                     self.pretreatment_done = True
-                    if verbose: logging.info("Non-saved anonymizations curated")
-                    if verbose: logging.info("######### END: PRETREAT NON-SAVED ANONYMIZATIONS #########")
+                    if verbose: logging.info("Non-saved anonymizations added")
+                    if verbose: logging.info("######### END: ADDING NON-SAVED ANONYMIZATIONS #########")
                 else:
-                    if verbose: logging.info("Pretreated versions of all anonymizations have been loaded")
+                    if verbose: logging.info("There are not non-saved anonymizations to add")
+                    if verbose: logging.info("######### SKIPPING: ADDING NON-SAVED ANONYMIZATIONS #########")
             else:
-                if verbose: logging.info("######### SKIPPING: PRETREAT NON-SAVED ANONYMIZATIONS #########")
+                if verbose: logging.info("######### SKIPPING: ADDING NON-SAVED ANONYMIZATIONS #########")
 
             if verbose: logging.info("######### END: LOADING SAVED PRETREATED DATA #########")
 
@@ -302,7 +312,7 @@ class TRI():
         if verbose: logging.info("######### END: DATA STATISTICS #########")
 
         # Pretreat data if required and not pretreatment loaded
-        if (self.anonymize_background_knowledge or self.use_document_curation) and not self.pretreatment_done:
+        if (self.anonymize_background_knowledge or self.use_document_curation) and not self.pretreated_data_loaded:
             if verbose: logging.info("######### START: DATA PRETREATMENT #########")
             
             if self.anonymize_background_knowledge:
@@ -342,7 +352,7 @@ class TRI():
             (train_df_json_str, eval_dfs_jsons) = json.load(f)        
         
         train_df = pd.read_json(StringIO(train_df_json_str))
-        eval_dfs = {name:pd.read_json(StringIO(df_json)) for name, df_json in eval_dfs_jsons.items()}
+        eval_dfs = OrderedDict([(name, pd.read_json(StringIO(df_json))) for name, df_json in eval_dfs_jsons.items()])
 
         return train_df, eval_dfs
     
@@ -363,6 +373,8 @@ class TRI():
             raise Exception(f"Dataframe does not contain the individual name column {self.individual_name_column}")
         if not self.background_knowledge_column in data_df.columns:
             raise Exception(f"Dataframe does not contain the background knowledge column {self.background_knowledge_column}")
+        if self.dev_set_column_name is not False and not self.dev_set_column_name in data_df.columns:
+            raise Exception(f"Dataframe does not contain the dev set column {self.dev_set_column_name}")
         
         # Check there are additional columns providing texts to re-identify
         anon_cols = [col_name for col_name in data_df.columns if not col_name in [self.individual_name_column, self.background_knowledge_column]]        
@@ -524,8 +536,8 @@ class TRI():
 
     def save_pretreatment_dfs(self, train_df:pd.DataFrame, eval_dfs:dict):
         with open(self.pretreated_data_path, "w") as f:
-            f.write(json.dumps((train_df.to_json(),
-                                {name:df.to_json() for name, df in eval_dfs.items()})))        
+            f.write(json.dumps((train_df.to_json(orient="records"),
+                                {name:df.to_json(orient="records") for name, df in eval_dfs.items()})))        
 
     #endregion
 
@@ -706,7 +718,7 @@ class TRI():
 
     def create_datasets(self, train_df, eval_dfs, tokenizer, name_to_label, task_config):
         train_dataset = TRIDataset(train_df, tokenizer, name_to_label, task_config.uses_labels, task_config.sliding_window, self.tokenization_block_size)
-        eval_datasets_dict = {name:TRIDataset(eval_df, tokenizer, name_to_label, task_config.uses_labels, task_config.sliding_window, self.tokenization_block_size) for name, eval_df in eval_dfs.items()}
+        eval_datasets_dict = OrderedDict([(name, TRIDataset(eval_df, tokenizer, name_to_label, task_config.uses_labels, task_config.sliding_window, self.tokenization_block_size)) for name, eval_df in eval_dfs.items()])
         return train_dataset, eval_datasets_dict
 
     def ini_extended_model(self, base_model, extended_model, link_instead_of_copy_base_model, verbose=True):
@@ -753,12 +765,25 @@ class TRI():
     def get_trainer(self, model, task_config, train_dataset, eval_datasets_dict=None, data_collator=None):
         is_for_mlm = task_config.is_for_mlm
 
-        # Variable settings
-        eval_strategy = "no" if is_for_mlm else "epoch"
-        save_strategy = "no" if is_for_mlm else "epoch"
-        load_best_model_at_end = not is_for_mlm
-        eval_datasets_dict = None if is_for_mlm else self.eval_datasets_dict
-        results_filepath = None if is_for_mlm else self.results_file_path
+        # Settings for additional pretraining (Masked Language Modeling)
+        if is_for_mlm:
+            eval_strategy = "no"
+            save_strategy = "no"
+            load_best_model_at_end = False
+            metric_for_best_model = None
+            eval_datasets_dict = None
+            results_filepath = None
+        # Settings for finetuning
+        else:
+            eval_strategy = "epoch"
+            save_strategy = "epoch"
+            load_best_model_at_end = True
+            if self.dev_set_column_name:
+                metric_for_best_model = self.dev_set_column_name+"_eval_Accuracy" # Prefix (e.g., "eval_") will be added by the Trainer
+            else:
+                metric_for_best_model = "avg_Accuracy" # Prefix (e.g., "eval_") will be added later will be added by the Trainer
+            eval_datasets_dict = self.eval_datasets_dict
+            results_filepath = self.results_file_path
 
         # Define TrainingArguments    
         args = TrainingArguments(
@@ -771,13 +796,12 @@ class TRI():
             per_device_train_batch_size=task_config.batch_size,
             per_device_eval_batch_size=task_config.batch_size,
             logging_strategy="epoch",
-            logging_steps=500,        
+            logging_steps=500,
             eval_strategy=eval_strategy,
-            log_level="error",
             disable_tqdm=False,
             eval_accumulation_steps=5,  # Number of eval steps before move preds are moved from GPU to RAM        
             dataloader_num_workers=0,
-            metric_for_best_model="eval_Accuracy",
+            metric_for_best_model=metric_for_best_model,
             dataloader_persistent_workers=False,
             dataloader_prefetch_factor=None,
         )
@@ -821,6 +845,7 @@ class TRI():
         # Show results
         if verbose:
             for dataset_name, res in self.trir_results.items():
+                #res_key = list(filter(lambda x:x.endswith("_Accuracy"), res.keys()))[0]
                 logging.info(f"TRIR {dataset_name} = {res['eval_Accuracy']}%")
         
         if verbose: logging.info("######### END: PREDICT TRIR #########")
@@ -1073,15 +1098,17 @@ class TRIDataset(Dataset):
 
 class TRITrainer(Trainer):
     def __init__(self, results_filepath:str = None, **kwargs):
-        self.results_filepath = results_filepath
-        self.eval_datasets_dict = kwargs["eval_dataset"]        
-        self.do_custom_eval = results_filepath is not None and type(self.eval_datasets_dict) is dict
-        if self.do_custom_eval:
-            kwargs["eval_dataset"] = None # Substitue for avoiding bug from https://github.com/huggingface/transformers/pull/19158#issuecomment-1429486221
-        
         Trainer.__init__(self, **kwargs)
+        self.results_filepath = results_filepath
+        
+        if self.results_filepath is not None and "eval_dataset" in self.__dict__ and isinstance(self.eval_dataset, dict):
+            self.do_custom_eval = True
+            self.eval_dataset_dict = self.eval_dataset
+        else:
+            self.do_custom_eval = False
         
         if self.do_custom_eval:
+            self.eval_datasets_dict = self.eval_dataset
             self.all_results = []
             self.evaluation_epoch = 1   # Start epoch counter
             self.initialize_results_file()
@@ -1094,33 +1121,43 @@ class TRITrainer(Trainer):
         text += "Time,Epoch"
         for dataset_name in self.eval_datasets_dict.keys():
             text+=f",{dataset_name}"
+        text+=",Average"
         text += "\n"
         self.write_results(text)
 
-    def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):        
-        # If custom evaluation
+    def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         if self.do_custom_eval:
-            custom_results = {}
+            metrics = OrderedDict()
+            structured_results = OrderedDict()
             avg_loss = 0
             loss_key = f"{metric_key_prefix}_loss"
             avg_acc = 0
             acc_key = f"{metric_key_prefix}_Accuracy"
 
             # Get results
-            for dataset_name, dataset in self.eval_datasets_dict.items():       
-                res = Trainer.evaluate(self, eval_dataset=dataset, ignore_keys=ignore_keys, metric_key_prefix=metric_key_prefix)
-                avg_loss += res[loss_key] / len(self.eval_datasets_dict)
-                avg_acc += res[acc_key] / len(self.eval_datasets_dict)
-                custom_results[dataset_name] = res
+            for dataset_name, dataset in self.eval_datasets_dict.items():
+                dataset_metrics = Trainer.evaluate(self, eval_dataset=dataset, ignore_keys=ignore_keys, metric_key_prefix=metric_key_prefix)                
+                avg_loss += dataset_metrics[loss_key] / len(self.eval_datasets_dict)
+                avg_acc += dataset_metrics[acc_key] / len(self.eval_datasets_dict)
+                structured_results[dataset_name] = dataset_metrics
+                dataset_metrics = {f"{metric_key_prefix}_{dataset_name}_{key}":val for key, val in dataset_metrics.items()} # Add dataset name to results keys
+                metrics.update(dataset_metrics)
+                
             
-            # Save results intro list and file
-            self.store_results(custom_results)
-            self.all_results.append(custom_results)
+            # Add average metrics to results
+            metrics.update({f"{metric_key_prefix}_avg_loss": avg_loss, f"{metric_key_prefix}_avg_Accuracy": avg_acc})
+            
+            # Save results into file and list
+            self.store_results(metrics)
+            self.all_results.append(structured_results)
 
             # Increment evaluation epoch
             self.evaluation_epoch += 1
 
-            return {loss_key: avg_loss, acc_key: avg_acc}
+            # Add average metrics with the prefix, for compatibility with super class
+            metrics.update({loss_key: avg_loss, acc_key: avg_acc})
+
+            return metrics
         # Otherwise, standard evaluation with eval_dataset
         else:
             return Trainer.evaluate(self, eval_dataset=eval_dataset, ignore_keys=ignore_keys, metric_key_prefix=metric_key_prefix)        
@@ -1129,11 +1166,9 @@ class TRITrainer(Trainer):
         current_time = self.current_time_str()
         try:
             results_text = f"{current_time},{self.evaluation_epoch}"
-            for data in eval_results.values():
-                key = list(filter(lambda k: "_Accuracy" in k, data.keys()))[0]
-                accuracy = data[key]
-                accuracy_str = "{:.3f}".format(accuracy)
-                results_text += f",{accuracy_str}"
+            for key, value in eval_results.items():
+                if key.endswith("_Accuracy"):
+                    results_text += f",{value:.3f}"
             results_text += "\n"
             self.write_results(results_text)
         except Exception as e:
