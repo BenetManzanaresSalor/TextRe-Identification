@@ -9,7 +9,7 @@ import logging
 from collections import OrderedDict
 
 from argparse import Namespace
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 import numpy as np
 import pandas as pd
 from io import StringIO
@@ -405,9 +405,10 @@ class TRI():
 
     def get_individuals(self, train_df:pd.DataFrame, eval_dfs:dict):
         train_individuals = set(train_df[self.individual_name_column])
-        eval_individuals = set()        
-        for eval_df in eval_dfs.values():
-            eval_individuals.update(set(eval_df[self.individual_name_column]))
+        eval_individuals = set()
+        for name, eval_df in eval_dfs.items():
+            if name != self.dev_set_column_name: # Exclude dev_set from these statistics
+                eval_individuals.update(set(eval_df[self.individual_name_column]))
         all_individuals = train_individuals.union(eval_individuals)
         no_train_individuals = eval_individuals - train_individuals
         no_eval_individuals = train_individuals - eval_individuals
@@ -433,7 +434,7 @@ class TRI():
         
         if len(no_train_individuals) > 0:
             max_risk = (1 - len(no_train_individuals) / len(eval_individuals)) * 100
-            logging.info(f"No background knowledge documents found for {len(no_train_individuals)} individuals. Re-identification risk limited to {max_risk:.3f}%.")
+            logging.info(f"No background knowledge documents found for {len(no_train_individuals)} individuals. Re-identification risk limited to {max_risk:.3f}% (excluding dev set).")
 
     #endregion
 
@@ -570,7 +571,7 @@ class TRI():
         # Otherwise, pretrain (if required) and finetune a TRI model
         else:
             if self.load_saved_finetuning:
-                if verbose: logging.info(f"Impossible to load saved TRI pipeline, folder {self.tri_pipe_path} not found.")
+                if verbose: logging.info(f"Fail loading saved TRI pipeline: Folder {self.tri_pipe_path} not found.")
 
             if verbose: logging.info("######### START: CREATE BASE LANGUAGE MODEL #########")
             self.base_model, self.tokenizer = self.create_base_model(verbose=verbose)
@@ -585,7 +586,7 @@ class TRI():
                     if verbose: logging.info("Additionally pretrained base model loaded")
                 else:
                     if self.load_saved_pretraining:
-                        if verbose: logging.info(f"Impossible to load saved pretrained base model, file {self.pretrained_model_path} not found.")
+                        if verbose: logging.info(f"Fail loading saved pretrained base model: File {self.pretrained_model_path} not found.")
 
                     # Datasets for additional pretraining
                     self.pretraining_dataset, _ = self.create_datasets(self.train_df, self.eval_dfs, self.tokenizer, 
@@ -785,7 +786,7 @@ class TRI():
             eval_datasets_dict = self.eval_datasets_dict
             results_filepath = self.results_file_path
 
-        # Define TrainingArguments    
+        # Define TrainingArguments
         args = TrainingArguments(
             output_dir=task_config.trainer_folder_path,
             overwrite_output_dir=True,

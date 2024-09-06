@@ -79,7 +79,7 @@ Here is a Python snippet that demonstrates how to run TRI (obtaining TRIR result
 import os
 from tri import TRI
 
-# Declare TRI mandatory settings, with placeholders for output and data paths
+# Declare TRI mandatory settings (placeholders for output and data paths) and some optional settings
 tri = TRI(output_folder_path="To Be Defined",
         data_file_path="To Be Defined",
         individual_name_column="name",
@@ -98,15 +98,14 @@ for data_file_name in os.listdir(data_folder_path):
     if data_file_name != "config.json":
         # Set new data_file_path and output_folder_path configurations
         data_file_path = os.path.join(data_folder_path, data_file_name)
-        output_name = os.path.splitext(data_file_name)[0]
+        output_name = os.path.splitext(data_file_name)[0] # Filename without extension
         output_folder_path = os.path.join(output_folder_base_path, output_name)
         tri.set_configs(data_file_path=data_file_path,
                         output_folder_path=output_folder_path)
         
-        # Run and get TRIR (accuracy) for each anonymization
+        # Run TRIA and get TRIR for each anonymization
         result = tri.run(verbose=True)
-        result = {key:value["eval_Accuracy"] for key, value in result.items()}
-        all_results[data_file_name] = result
+        all_results[data_file_name] = {key:value["eval_Accuracy"] for key, value in result.items()}
 
 # Show results for all data files
 print(all_results)
@@ -189,7 +188,7 @@ After execution of TRI (both from CLI or Python code), in the `output_folder_pat
   At the end of the program, TRIR is predicted for all the anonymization methods using the best TRI model considering the criteria defined for the setting `dev_set_column_name`. This final evaluation is also stored in the `Results.csv` file as an "additional epoch".
 
 ## Examples
-In the [examples](examples) folder, a basic JSON configuration file [config.json](examples/config.json) and multiple Pandas' dataframes (in JSON format) are provided. That configuration uses the [WikiActors_50_eval.json](examples/WikiActors_50_eval.json) dataframe, that contains a set of 50 popular actors and actresses born in the 20th century. Background knowledge are the bodies of the actors' Wikipedia articles. Anonymized documents are the abstracts of the actors' Wikipedia articles protected using approaches based on NER, Word2Vec and manual efforts (see [our paper](https://link.springer.com/chapter/10.1007/978-3-031-13945-1_12) for details). Using this [config.json](examples/config.json) (command example in the [Usage section](#usage)), the TRIRs expected to be found in the corresponding `Results.csv` of the `output_folder_path` are (may differ by up to 10% depending on execution):
+In the [examples](examples) folder, a basic JSON configuration file [config.json](examples/config.json) and multiple Pandas' dataframes (in JSON format) are provided. That configuration uses the [WikiActors_50_eval.json](examples/WikiActors_50_eval.json) dataframe, that contains a set of 50 popular actors and actresses born in the 20th century. Background knowledge are the bodies of the actors' Wikipedia articles. Anonymized documents are the abstracts of the actors' Wikipedia articles protected using approaches based on NER, Word2Vec and manual efforts; and development set is a random 30\% subset of the spaCy-anonymized abstracts (see [our paper](https://doi.org/10.1007/s10618-024-01066-3) for details). Using this [config.json](examples/config.json) (command example in the [Usage section](#usage)), the final TRIRs expected to be found in the corresponding `Results.csv` of the `output_folder_path` are:
 | Method          | TRIR |
 |-----------------|------|
 | Original        | 100% |
@@ -201,6 +200,8 @@ In the [examples](examples) folder, a basic JSON configuration file [config.json
 | Word2Vec_t=0.5  | 48%  |
 | Word2Vec_t=0.25 | 26%  |
 | Manual          | 10%  |
+
+*Note that values may differ depending on execution*
 
 Feel free to modify the [config.json](examples/config.json) file for testing other dataframes or configurations. If the `data_file_path` is changed (i.e. if you change the dataframes), we recommend to also change the `output_folder_path` directory to avoid overwriting and/or load pretreated data from other dataframes.
 

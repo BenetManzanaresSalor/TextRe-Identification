@@ -24,6 +24,6 @@
     "finetuning_batch_size": 16,
     "finetuning_learning_rate": 5e-05,
     "finetuning_sliding_window": "100-25",
-    "dev_set_column_name": false,
+    "dev_set_column_name": "dev_abstract",
     "save_finetuning": true
 }
