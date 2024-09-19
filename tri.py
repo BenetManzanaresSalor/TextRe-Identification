@@ -232,7 +232,7 @@ class TRI():
 
         # Create output directory if it does not exist
         if not os.path.isdir(self.output_folder_path):
-            os.makedirs(self.output_folder_path)
+            os.makedirs(self.output_folder_path, exist_ok=True)
 
         # Read pretreated data if it exists        
         if self.load_saved_pretreatment and os.path.isfile(self.pretreated_data_path):
