@@ -6,9 +6,20 @@
   <img src="https://img.shields.io/badge/Linux_based-Compatible_but_not_tested-lightgrey" alt="Compatible but not tested on Linux-based systems"/>
 </p>
 
-This repository contains the code and data for the **text re-identification attack** (TRIR) and subsequent **re-identification risk metric** (TRIR) presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack, Data Mining and Knowledge Discovery, (2024)](https://doi.org/10.1007/s10618-024-01066-3). A first version of this project was presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Automatic Evaluation of Disclosure Risks of Text Anonymization Methods, Privacy in Statistical Databases, (2022)](https://doi.org/10.1007/978-3-031-13945-1_12).
+This repository contains the code and data for the **text re-identification attack** (TRIR) and subsequent **re-identification risk metric** (TRIR) presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack, Data Mining and Knowledge Discovery, 2024](https://doi.org/10.1007/s10618-024-01066-3).
+```bibtex
+@article{manzanaressalor-etal-tri-2024,
+title = {Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack},
+journal = {Data Mining and Knowledge Discovery},
+ISBN = {1573-756X},
+year = {2024},
+volume = {(In press)},
+author = {Manzanares-Salor, Benet and S\'anchez, David and Lison, Pierre}
+}
+```
+A first version of this project was presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Automatic Evaluation of Disclosure Risks of Text Anonymization Methods, Privacy in Statistical Databases, 2022](https://doi.org/10.1007/978-3-031-13945-1_12).
 
-Experimental data was extracted from the [automatic_text_anonymization](https://github.com/fadiabdulf/automatic_text_anonymization) repository, corresponding to the publication [F. Hassan, D. Sanchez, J. Domingo-Ferrer, Utility-Preserving Privacy Protection of Textual Documents via Word Embeddings, IEEE Transactions on Knowledge and Data Engineering, (2021)](https://ieeexplore.ieee.org/abstract/document/9419784). The exact data files utilized in the experiments are located in the [examples](examples) folder.
+Experimental data was extracted from the [automatic_text_anonymization](https://github.com/fadiabdulf/automatic_text_anonymization) repository, corresponding to the publication [F. Hassan, D. Sanchez, J. Domingo-Ferrer, Utility-Preserving Privacy Protection of Textual Documents via Word Embeddings, IEEE Transactions on Knowledge and Data Engineering, 2021](https://ieeexplore.ieee.org/abstract/document/9419784). The exact data files utilized in the experiments are located in the [examples](examples) folder.
 
 ## Table of Contents
 * [Project structure](#project-structure)
