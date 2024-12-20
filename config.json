@@ -1,6 +1,6 @@
 {
-    "output_folder_path": "Outputs/WikiActors/50_eval",
-    "data_file_path": "examples/WikiActors_50_eval.json",
+    "output_folder_path": "outputs/WikiActors/50_eval",
+    "data_file_path": "data/WikiActors_50_eval.json",
     "individual_name_column": "name",
     "background_knowledge_column": "public_knowledge",
     "load_saved_pretreatment": true,

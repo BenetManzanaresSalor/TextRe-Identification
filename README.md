@@ -19,7 +19,7 @@ author = {Manzanares-Salor, Benet and S\'anchez, David and Lison, Pierre}
 ```
 A first version of this project was presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Automatic Evaluation of Disclosure Risks of Text Anonymization Methods, Privacy in Statistical Databases, 2022](https://doi.org/10.1007/978-3-031-13945-1_12).
 
-Experimental data was extracted from the [automatic_text_anonymization](https://github.com/fadiabdulf/automatic_text_anonymization) repository, corresponding to the publication [F. Hassan, D. Sanchez, J. Domingo-Ferrer, Utility-Preserving Privacy Protection of Textual Documents via Word Embeddings, IEEE Transactions on Knowledge and Data Engineering, 2021](https://ieeexplore.ieee.org/abstract/document/9419784). The exact data files utilized in the experiments are located in the [examples](examples) folder.
+Experimental data was extracted from the [automatic_text_anonymization](https://github.com/fadiabdulf/automatic_text_anonymization) repository, corresponding to the publication [F. Hassan, D. Sanchez, J. Domingo-Ferrer, Utility-Preserving Privacy Protection of Textual Documents via Word Embeddings, IEEE Transactions on Knowledge and Data Engineering, 2021](https://ieeexplore.ieee.org/abstract/document/9419784). The exact data files utilized in the experiments are located in the [data](data) folder.
 
 ## Table of Contents
 * [Project structure](#project-structure)
@@ -29,7 +29,7 @@ Experimental data was extracted from the [automatic_text_anonymization](https://
   * [TRI class](#tri-class)
 * [Configuration](#configuration)
 * [Results](#results)
-* [Examples](#examples)  
+* [Example](#example)  
 * [TRI workflow](#TRI-workflow)
 
 
@@ -40,8 +40,8 @@ Text Re-Identification (TRI)
 │   tri.py                                  # Python program including the TRI class, which can be executed as CLI
 │   requirements.txt                        # File generated with Conda containing all the required Python packages with specific versions
 |   tri_workflow.png                        # Diagram of the TRI class workflow used later in this README
-└───examples                                # Folder with examples
-    │   config.json                         # Example configuration
+│   config.json                             # Example configuration
+└───data                                    # Folder with data files
     │   WikiActors_50_eval.json             # Panda's dataframe with 50 protected individuals and background knowledge for the same 50
     │   WikiActors_50_eval_25%BK.json       # Same as previous dataframe but with only the first 25% of each background knowledge document
     │   WikiActors_500_random.json          # Panda's dataframe with 50 protected individuals and background knowledge for ∼500 individuals, including the 50
@@ -77,15 +77,15 @@ The TRIA method and TRIR metric are implemented in the [tri.py](tri.py) script. 
 ## CLI
 The CLI implementation only requires to pass as argument the path to a JSON configuration file. This file must contain a dictionary with the mandatory configurations, and can also contain optional configurations (see [Configuration section](#configuration)).
 
-For example, for using the configuration file [examples/config.json](examples/config.json), run the following command:
+For example, for using the configuration file [config.json](config.json), run the following command:
 ```console
-python tri.py examples/config.json
+python tri.py config.json
 ```
 
 ## TRI class
 You can replicate the CLI behavior in a Python file by importing the `TRI` class from the [tri.py](tri.py) script, instanciating the class and calling to its `run` method. The constructor requires the mandatory configurations as arguments, and also accepts optional configurations (see [Configuration section](#configuration)). Moreover, any of these configurations can be later modified by calling the `set_configs` method. During the execution, multiple loggings indicate the current block within the TRI workflow (see [TRI workflow section](#tri-workflow)). These loggings can be disabled by passing `verbose=False` as argument to the `run` method.
 
-Here is a Python snippet that demonstrates how to run TRI (obtaining TRIR results) for all the data files in the [examples](examples) folder:
+Here is a Python snippet that demonstrates how to run TRI (obtaining TRIR results) for all the data files in the [data](data) folder:
 ```python
 import os
 from tri import TRI
@@ -100,9 +100,9 @@ tri = TRI(output_folder_path="To Be Defined",
         pretraining_epochs=1,
         finetuning_epochs=1)
 
-# Evaluate all the data files in the "examples" folder
+# Evaluate all the data files in the "data" folder
 all_results = {}
-data_folder_path = "examples"
+data_folder_path = "data"
 output_folder_base_path = "outputs"
 for data_file_name in os.listdir(data_folder_path):
     # Discard the config.json file
@@ -175,7 +175,7 @@ In the following, we specify the configurations available for our implementation
   * **pretraining_batch_size | Integer | Default=8**: Size of the batches for additional pretraining.
   * **pretraining_learning_rate | Float | Default=5e-05**: Learning rate for the [AdamW optimizer](https://huggingface.co/docs/bitsandbytes/main/en/reference/optim/adamw) to use during additional pretraining.
   * **pretraining_mlm_probability | Float | Default=0.15**: Probability of masking tokens by the [Data Collator](https://huggingface.co/docs/transformers/main_classes/data_collator#transformers.DataCollatorForLanguageModeling.mlm_probability) during the additional pretraining with MLM.
-  * **pretraining_sliding_window | String | Default="512-128"**: Sliding window configuration for additional pretraining. Since input documents are assumed to be longer than the maximum number of tokens processable by the language model (maximum sequence length), the text is split into multiple samples. A sliding window mechasim has been implemented, defined by the size of the window and the overlap with the previous window. For example, use "512-128" for samples/splits of 512 tokens and an overlap of 128 tokens with the previous split/sample. Alternatevely, if "No" is used, one sample/split per sentence will be created, leveraging that sentences are generally shorter than the model maximum sequence length. Reducing the window size and/or incrementing the overlap will result in more samples/splits, what increments the training time.
+  * **pretraining_sliding_window | String | Default="512-128"**: Sliding window configuration for additional pretraining. Since input documents are assumed to be longer than the maximum number of tokens processable by the language model (maximum sequence length), the text is split into multiple samples. A sliding window mechasim has been implemented, defined by the size of the window and the overlap with the previous window. For instance, use "512-128" for samples/splits of 512 tokens and an overlap of 128 tokens with the previous split/sample. Alternatevely, if "No" is used, one sample/split per sentence will be created, leveraging that sentences are generally shorter than the model maximum sequence length. Reducing the window size and/or incrementing the overlap will result in more samples/splits, what increments the training time.
 * **Finetuning**:
   * **finetuning_epochs | Integer | Default=15**: Number of epochs to perform during the finetuning.
   * **finetuning_batch_size | Integer | Default=16**: Size of the batches for finetuning.
@@ -189,7 +189,7 @@ After execution of TRI (both from CLI or Python code), in the `output_folder_pat
 * **Pretreated_Data.json**: If `save_pretreatment` is true, this file is created for saving the pretreated background knowledge and protected documents, sometimes referred as training and evaluation data, respectively. Leveraged if `load_saved_pretreatment` is true.
 * **Pretrained_Model.pt**: If `save_additional_pretraining` is true, this file is created for saving the additionally pretrained language model. Leveraged if `load_saved_pretraining` is true.
 * **TRI_Pipeline**: If `save_finetuning` is true, this folder is created for saving the . Leveraged if `load_saved_finetuning` is true.
-* **Results.csv**: After each epoch of finetuning, the Text Re-Identification Risk (TRIR) resulting from each anonymization method will be evaluated. These results are stored (always appending, not overwriting) in a CSV file named `Results.csv`. This file contains the epoch time, epoch number, the TRIR for each anonymization method and the average TRIR. for example, if using the dataframe exemplified in the `data_file_path` configuration description, TRIR results will correspond to Method1 and Method2:
+* **Results.csv**: After each epoch of finetuning, the Text Re-Identification Risk (TRIR) resulting from each anonymization method will be evaluated. These results are stored (always appending, not overwriting) in a CSV file named `Results.csv`. This file contains the epoch time, epoch number, the TRIR for each anonymization method and the average TRIR. for instance, if using the dataframe exemplified in the `data_file_path` configuration description, TRIR results will correspond to Method1 and Method2:
   | Time                | Epoch | Method1 | Method2 | Average |
   | ------------------- | ----- | ------- | ------- | ------- |
   | 01/08/2024 08:50:04 | 1     | 74      | 36      | 55      |
@@ -198,8 +198,8 @@ After execution of TRI (both from CLI or Python code), in the `output_folder_pat
 
   At the end of the program, TRIR is predicted for all the anonymization methods using the best TRI model considering the criteria defined for the setting `dev_set_column_name`. This final evaluation is also stored in the `Results.csv` file as an "additional epoch".
 
-## Examples
-In the [examples](examples) folder, a basic JSON configuration file [config.json](examples/config.json) and multiple Pandas' dataframes are provided. That configuration uses the [WikiActors_50_eval.json](examples/WikiActors_50_eval.json) dataframe, which contains a set of 50 popular actors and actresses born in the 20th century extracted from the [automatic_text_anonymization](https://github.com/fadiabdulf/automatic_text_anonymization) repository. Background knowledge are the bodies of the actors' Wikipedia articles. Anonymized documents are the abstracts of these actors' Wikipedia articles protected using approaches based on NER, Word2Vec and manual efforts. Finally, development set is a random 30\% subset of the spaCy-anonymized abstracts (see [our paper](https://doi.org/10.1007/s10618-024-01066-3) for details). Using this [config.json](examples/config.json) (command example in the [Usage section](#usage)), the final TRIRs expected to be found in the corresponding `Results.csv` of the `output_folder_path` are:
+## Example
+The file [config.json](config.json) provides an example of a valid configuration. It uses data from the [data](data) folder, which includes multiple Pandas' dataframes. In particular, it employs the [WikiActors_50_eval.json](data/WikiActors_50_eval.json) dataframe, which contains a set of 50 popular actors and actresses born in the 20th century. Background knowledge are the bodies of the actors' Wikipedia articles. Anonymized documents are the abstracts of these actors' Wikipedia articles protected using approaches based on NER, Word2Vec and manual efforts. Finally, development set is a random 30\% subset of the spaCy-anonymized abstracts (see [our paper](https://doi.org/10.1007/s10618-024-01066-3) for details). Using this [config.json](config.json) (command example in the [Usage section](#usage)), the final TRIRs expected to be found in the corresponding `Results.csv` of the `output_folder_path` are:
 | Method          | TRIR |
 |-----------------|------|
 | Original        | 100% |
@@ -214,7 +214,7 @@ In the [examples](examples) folder, a basic JSON configuration file [config.json
 
 *Note that values may differ depending on execution*
 
-Feel free to modify the [config.json](examples/config.json) file for testing other configurations. If the `data_file_path` is modified (i.e. you change the dataframe), we recommend to also update the `output_folder_path` directory to avoid overwriting and/or load pretreated data from other dataframes.
+Feel free to modify the [config.json](config.json) file for testing other configurations. If the `data_file_path` is modified (i.e., you change the dataframe), we recommend to also update the `output_folder_path` directory to avoid overwriting and/or load pretreated data from other dataframes.
 
 # TRI workflow
 To facilitate the understanding of our implementation, the following diagram depicts the workflow of the `TRI` class in [tri.py](tri.py). In is divided into the three main blocks (i.e., Data, Build classifier and Predict TRIR), using <span style="color:blue">blue boxes</span> for the mandatory fragments, and <span style="color:green">green boxes</span> for optional fragments. Depending on the [configuration](#configuration), the optional fragments are executed or it is skipped to the next fragment. If using [Visual Studio Code IDE](https://code.visualstudio.com/), it is recommended to install the *Python Code Tools* extension for collapsing and extending the code regions corresponding to the blocks and boxes.
