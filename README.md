@@ -154,7 +154,7 @@ In the following, we specify the configurations available for our implementation
 * **Data pretreatment**:
   * **Anonymized background knowledge**:
     * **ANONIMIZE_BACKGROUND_KNOWLEDGE | Boolean | Default=true**: If during document pretreatment generate an anonymized version of the background knowledge documents using [spaCy NER](https://spacy.io/api/entityrecognizer) that would be used along with the non-anonymized version. Its usage is strongly recommended, since it can significantly improve re-identification risks. As a counterpoint, it roughly duplicates the training samples, incrementing the training time and RAM consumsumption.
-    * **only_use_anonymized_background_knowledge | Boolean | Default=alse**: If only using the anonymized version of the background knowledge, instead of concatenating it with the non-anonymized version. This usually results in higher re-identification risks than using only the non-anonymized version, but lower than using both (anonymized and non-anonymized). Created for an ablation study.
+    * **only_use_anonymized_background_knowledge | Boolean | Default=false**: If only using the anonymized version of the background knowledge, instead of concatenating it with the non-anonymized version. This usually results in higher re-identification risks than using only the non-anonymized version, but lower than using both (anonymized and non-anonymized). Created for an ablation study.
   * **Document curation**:
     * **use_document_curation | Boolean | Default=true**: Whether to perform the document curation, consisting of lemmatization and removing of stopwords and special characters. It is inexpensive compared to pretraining or finetuning.
 
@@ -163,7 +163,7 @@ In the following, we specify the configurations available for our implementation
 
 ### Build classifier
 * **Load already trained TRI model**:
-  * **load_saved_finetuning | Boolean | Default=True**: If the `TRI_Pipeline` exists in the `output_folder_path` directory and contains the model file `model.safetensors`, load that already trained TRI model instead of running the additional pretraining and finetuning. It requires a previous execution with `save_finetuning=true`.
+  * **load_saved_finetuning | Boolean | Default=true**: If the `TRI_Pipeline` exists in the `output_folder_path` directory and contains the model file `model.safetensors`, load that already trained TRI model instead of running the additional pretraining and finetuning. It requires a previous execution with `save_finetuning=true`.
 * **Create base language model**:
   * **base_model_name | String | Default="distilbert-base-uncased"**: Name of the base language model in the [HuggingFace's Transformers library](https://huggingface.co/docs/transformers/index) to be used for both additional pretraining and finetuning. Current code is designed for versions of BERT, DistilBERT and RoBERTa. Examples: "distilbert-base-uncased", "distilbert-base-cased", "bert-base-uncased", "bert-base-cased" and "roberta-base". The `ini_extended_model` method from the TRI class (in [tri.py](tri.py)) can be easily modified for other models.
   * **tokenization_block_size | Integer | Default=250**: Number of data samples tokenized at once with [Transformers' tokenizer](https://huggingface.co/docs/transformers/en/main_classes/tokenizer). This is done for limiting and optimizing RAM usage when processing large datasets. The value of 250 is roughly optimized for 32GB of RAM.
