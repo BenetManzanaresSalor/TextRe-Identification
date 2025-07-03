@@ -496,7 +496,7 @@ class TRI():
     def document_curation(self, train_df:pd.DataFrame, eval_dfs:dict):
         spacy_nlp = self.load_spacy_nlp()
 
-        # Perform preprocessing for both training and evaluation
+        # Perform curation for both training and evaluation
         self.curate_df(train_df, spacy_nlp)
         for eval_df in eval_dfs.values():
             self.curate_df(eval_df, spacy_nlp)
@@ -511,7 +511,7 @@ class TRI():
         # Process the text column (discarting the first one, that is the name column)
         column_name = df.columns[1]
         texts = df[column_name]
-        for i, text in enumerate(tqdm(texts, desc=f"Preprocessing {column_name} documents")):
+        for i, text in enumerate(tqdm(texts, desc=f"Curating {column_name} documents")):
             doc = spacy_nlp(text) # Usage of spaCy (https://spacy.io/)
             new_text = ""   # Start text string
             for token in doc:
