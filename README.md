@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/Linux_based-Compatible_but_not_tested-lightgrey" alt="Compatible but not tested on Linux-based systems"/>
 </p>
 
-This repository contains the code and data for the **text re-identification attack** (TRIR) and subsequent **re-identification risk metric** (TRIR) presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack, Data Mining and Knowledge Discovery, 2024](https://doi.org/10.1007/s10618-024-01066-3).
+This repository contains the code and data for the **Text Re-Identification Attack** (TRIR) and subsequent **Text Re-Identification Risk** (TRIR) metric presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack, Data Mining and Knowledge Discovery, 2024](https://doi.org/10.1007/s10618-024-01066-3).
 ```bibtex
 @article{manzanaressalor-etal-tri-2024,
 title = {Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack},
