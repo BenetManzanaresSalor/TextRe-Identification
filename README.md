@@ -9,12 +9,12 @@
 This repository contains the code and data for the **Text Re-Identification Attack** (TRIR) and subsequent **Text Re-Identification Risk** (TRIR) metric presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack, Data Mining and Knowledge Discovery, 2024](https://doi.org/10.1007/s10618-024-01066-3).
 ```bibtex
 @article{manzanaressalor-etal-tri-2024,
-title = {Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack},
-journal = {Data Mining and Knowledge Discovery},
-ISBN = {1573-756X},
-year = {2024},
-volume = {(In press)},
-author = {Manzanares-Salor, Benet and S\'anchez, David and Lison, Pierre}
+  title = {Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack},
+  journal = {Data Mining and Knowledge Discovery},
+  ISBN = {1573-756X},
+  year = {2024},
+  volume = {(In press)},
+  author = {Manzanares-Salor, Benet and S\'anchez, David and Lison, Pierre}
 }
 ```
 A first version of this project was presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Automatic Evaluation of Disclosure Risks of Text Anonymization Methods, Privacy in Statistical Databases, 2022](https://doi.org/10.1007/978-3-031-13945-1_12).
