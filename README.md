@@ -3,7 +3,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Windows%2010-Working-ok" alt="Working on Windows 10"/>
   <img src="https://img.shields.io/badge/Windows%2011-Working-ok" alt="Working on Windows 11"/>
-  <img src="https://img.shields.io/badge/Linux_based-Compatible_but_not_tested-lightgrey" alt="Compatible but not tested on Linux-based systems"/>
 </p>
 
 This repository contains the code and data for the **Text Re-Identification Attack** (TRIR) and subsequent **Text Re-Identification Risk** (TRIR) metric presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack, Data Mining and Knowledge Discovery, 2024](https://doi.org/10.1007/s10618-024-01066-3).
