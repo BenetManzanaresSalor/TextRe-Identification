@@ -57,7 +57,7 @@ Text Re-Identification (TRI)
 ```
 
 # Install
-Our implementation uses [Python 3.9.19](https://www.python.org/downloads/release/python-3919/) as programming language and [Conda](https://docs.conda.io/projects/conda/en/latest/) 24.1.2 for package management. All used packages and their respective versions are listed in the [requirements.txt](requirements.txt) file. 
+Our implementation uses [Python 3.9.19](https://www.python.org/downloads/release/python-3919/) as programming language and [Conda](https://docs.conda.io/projects/conda/en/latest/) for package management. All used packages and their respective versions are listed in the [requirements.txt](requirements.txt) file.
 
 To be able to run the code, follow these steps:
 1. Install Conda if you haven't already.
@@ -65,7 +65,8 @@ To be able to run the code, follow these steps:
 3. Open a terminal in the repository path.
 4. Create a new Conda environment using the following command (channels included for ensuring that specific versions can be installed):
 ```console
-conda create --name ENVIRONMENT_NAME --file requirements.txt -c conda-forge -c spacy -c pytorch -c nvidia -c huggingface -c numpy -c pandas
+conda env create --name ENVIRONMENT_NAME -f environment.yml
+#Alternatively: conda create --name ENVIRONMENT_NAME --file requirements.txt -c conda-forge -c spacy -c pytorch -c nvidia -c huggingface -c numpy -c pandas
 ```
 5. Activate the just created Conda environment using the following command:
 ```console
