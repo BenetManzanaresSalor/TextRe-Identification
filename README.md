@@ -6,10 +6,10 @@ A first version of this project was presented in [B. Manzanares-Salor, D. Sánch
 
 Experimental data was extracted from the [automatic_text_anonymization](https://github.com/fadiabdulf/automatic_text_anonymization) repository, corresponding to the publication [F. Hassan, D. Sanchez, J. Domingo-Ferrer, Utility-Preserving Privacy Protection of Textual Documents via Word Embeddings, IEEE Transactions on Knowledge and Data Engineering, 2021](https://ieeexplore.ieee.org/abstract/document/9419784). The exact data files utilized in the experiments are located in the [data](data) folder.
 
-* Affiliation/Authors: Developed at the [CRISES Research Group](https://crises-deim.urv.cat/), [Universitat Rovira i Virgili](https://www.urv.cat/en/) (URV), Tarragona, Catalonia.
-* Contact information: Benet Manzanares-Salor (benet.manzanares@urv.cat)
-* Acknowledgement: This research was funded by the European Commission (project H2020-871042 “SoBigData++”), the Norwegian Research Council (CLEANUP project, grant nr. 308904), MCIN/AEI/https://doi.org/10.13039/501100011033 and “ERDF A way of making Europe” under grant PID2021-123637NB-I00 “CURLING”, INCIBE and European Union NextGenerationEU/PRTR (project “HERMES” and INCIBE-URV Cybersecurity Chair) and the Government of Catalonia (ICREA Acadèmia Prize to David Sánchez).
-* Citation:
+* **Affiliation/Authors**: Developed at the [CRISES Research Group](https://crises-deim.urv.cat/), [Universitat Rovira i Virgili](https://www.urv.cat/en/) (URV), Tarragona, Catalonia.
+* **Contact information**: Benet Manzanares-Salor (benet.manzanares@urv.cat)
+* **Acknowledgement**: This research was funded by the European Commission (project H2020-871042 “SoBigData++”), the Norwegian Research Council (CLEANUP project, grant nr. 308904), MCIN/AEI/https://doi.org/10.13039/501100011033 and “ERDF A way of making Europe” under grant PID2021-123637NB-I00 “CURLING”, INCIBE and European Union NextGenerationEU/PRTR (project “HERMES” and INCIBE-URV Cybersecurity Chair) and the Government of Catalonia (ICREA Acadèmia Prize to David Sánchez).
+* **Citation**:
   ```bibtex
   @article{manzanaressalor-etal-tri-2024,
     title = {Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack},
