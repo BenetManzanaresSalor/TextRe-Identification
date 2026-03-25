@@ -1,29 +1,30 @@
 <h1 align="center">Text Re-Identification (TRI)</h1>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Windows%2010-Working-ok" alt="Working on Windows 10"/>
-  <img src="https://img.shields.io/badge/Windows%2011-Working-ok" alt="Working on Windows 11"/>
-</p>
+This repository contains the code and data for the **Text Re-Identification Attack** (TRIR) and subsequent **Text Re-Identification Risk** (TRIR) metric presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack, Data Mining and Knowledge Discovery, 2024](https://doi.org/10.1007/s10618-024-01066-3) ([pre-print version here](https://crises-deim.urv.cat/web/docs/publications/journals/1230.pdf)). 
 
-This repository contains the code and data for the **Text Re-Identification Attack** (TRIR) and subsequent **Text Re-Identification Risk** (TRIR) metric presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack, Data Mining and Knowledge Discovery, 2024](https://doi.org/10.1007/s10618-024-01066-3).
-```bibtex
-@article{manzanaressalor-etal-tri-2024,
-  title = {Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack},
-  journal = {Data Mining and Knowledge Discovery},  
-  volume = {38},
-  number = {6},
-  pages = {4040--4075},
-  year = {2024},
-  issn = {1573-756X},
-  doi = {10.1007/s10618-024-01066-3},
-  url = {https://doi.org/10.1007/s10618-024-01066-3},
-  author = {Manzanares-Salor, Benet and S\'anchez, David and Lison, Pierre},
-  keywords = {Privacy-preserving data publishing, Re-identification risk, Text anonymization, Language models}
-}
-```
-A first version of this project was presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Automatic Evaluation of Disclosure Risks of Text Anonymization Methods, Privacy in Statistical Databases, 2022](https://doi.org/10.1007/978-3-031-13945-1_12).
+A first version of this project was presented in [B. Manzanares-Salor, D. Sánchez, P. Lison, Automatic Evaluation of Disclosure Risks of Text Anonymization Methods, Privacy in Statistical Databases, 2022](https://doi.org/10.1007/978-3-031-13945-1_12). 
 
 Experimental data was extracted from the [automatic_text_anonymization](https://github.com/fadiabdulf/automatic_text_anonymization) repository, corresponding to the publication [F. Hassan, D. Sanchez, J. Domingo-Ferrer, Utility-Preserving Privacy Protection of Textual Documents via Word Embeddings, IEEE Transactions on Knowledge and Data Engineering, 2021](https://ieeexplore.ieee.org/abstract/document/9419784). The exact data files utilized in the experiments are located in the [data](data) folder.
+
+* Affiliation/Authors: Developed at the [CRISES Research Group](https://crises-deim.urv.cat/), [Universitat Rovira i Virgili](https://www.urv.cat/en/) (URV), Tarragona, Catalonia.
+* Contact information: Benet Manzanares-Salor (benet.manzanares@urv.cat)
+* Acknowledgement: This research was funded by the European Commission (project H2020-871042 “SoBigData++”), the Norwegian Research Council (CLEANUP project, grant nr. 308904), MCIN/AEI/https://doi.org/10.13039/501100011033 and “ERDF A way of making Europe” under grant PID2021-123637NB-I00 “CURLING”, INCIBE and European Union NextGenerationEU/PRTR (project “HERMES” and INCIBE-URV Cybersecurity Chair) and the Government of Catalonia (ICREA Acadèmia Prize to David Sánchez).
+* Citation:
+  ```bibtex
+  @article{manzanaressalor-etal-tri-2024,
+    title = {Evaluating the disclosure risk of anonymized documents via a machine learning-based re-identification attack},
+    journal = {Data Mining and Knowledge Discovery},  
+    volume = {38},
+    number = {6},
+    pages = {4040--4075},
+    year = {2024},
+    issn = {1573-756X},
+    doi = {10.1007/s10618-024-01066-3},
+    url = {https://doi.org/10.1007/s10618-024-01066-3},
+    author = {Manzanares-Salor, Benet and S\'anchez, David and Lison, Pierre},
+    keywords = {Privacy-preserving data publishing, Re-identification risk, Text anonymization, Language models}
+  }
+  ```
 
 ## Table of Contents
 * [Project structure](#project-structure)
